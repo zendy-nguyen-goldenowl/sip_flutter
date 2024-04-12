@@ -33,7 +33,7 @@ class SipFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
     sipManager = SipManager.getInstance(flutterPluginBinding.applicationContext)
   }
 
-  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
+  override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
     Log.d(this.javaClass.name, "onMethodCall")
     when (call.method) {
       "initSipModule" -> {

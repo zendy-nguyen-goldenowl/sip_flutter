@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
-import 'package:sip_flutter/src/model/sip_configuration.dart';
-import 'package:sip_flutter/src/model/sip_event.dart';
-import 'package:sip_flutter/src/model/sip_flutter_event.dart';
+import 'package:sip_flutter/sip_flutter.dart';
 
 class CallModule {
   CallModule._privateConstructor();
@@ -19,14 +17,20 @@ class CallModule {
 
   static Stream broadcastStream = _eventChannel.receiveBroadcastStream();
 
-  final StreamController<SipFlutterEvent> _eventStreamController =
+  final StreamController<SipFlutterEvent> _eventCallStreamController =
       StreamController.broadcast();
 
-  StreamController<SipFlutterEvent> get eventStreamController =>
-      _eventStreamController;
+  StreamController<SipFlutterEvent> get eventCallStreamController =>
+      _eventCallStreamController;
+
+  final StreamController<SipAccountEvent> _eventAccountStreamController =
+      StreamController.broadcast();
+
+  StreamController<SipAccountEvent> get eventAccountStreamController =>
+      _eventAccountStreamController;
 
   Future<void> initSipModule(SipConfiguration sipConfiguration) async {
-    if (!_eventStreamController.hasListener) {
+    if (!_eventCallStreamController.hasListener) {
       broadcastStream.listen(_listener);
     }
     await _methodChannel.invokeMethod(
@@ -35,11 +39,20 @@ class CallModule {
 
   void _listener(dynamic event) {
     final eventName = event['event'] as String;
-
+    final body = event['body'];
+    if (eventName == 'AccountRegistrationStateChanged') {
+      final status = body['registrationState'];
+      final message = body['message'];
+      if (status != null) {
+        final type = SipAccountEventType.fromTitle(status);
+        _eventAccountStreamController
+            .add(SipAccountEvent(type: type, message: message));
+      }
+      return;
+    }
     final type = SipEvent.fromTitle(eventName);
     if (type == null) return;
-    final body = event['body'];
-    _eventStreamController.add(SipFlutterEvent(type: type, body: body));
+    eventCallStreamController.add(SipFlutterEvent(type: type, body: body));
   }
 
   Future<bool> call(String phoneNumber) async {

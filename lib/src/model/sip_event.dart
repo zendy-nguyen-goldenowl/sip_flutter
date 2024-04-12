@@ -1,7 +1,6 @@
 import 'package:sip_flutter/src/utils/string.ext.dart';
 
 enum SipEvent {
-  accountRegistrationStateChanged,
   ring,
   up,
   paused,
