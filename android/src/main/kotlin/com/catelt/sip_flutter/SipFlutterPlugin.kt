@@ -2,14 +2,11 @@ package com.catelt.sip_flutter
 
 import android.util.Log
 import androidx.annotation.NonNull
-import com.google.gson.Gson
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-import org.json.JSONObject
 import com.catelt.sip_flutter.model.SipConfiguration
 import com.catelt.sip_flutter.sip_manager.SipManager
 
@@ -41,7 +38,10 @@ class SipFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
     when (call.method) {
       "initSipModule" -> {
         call.argument<Map<*, *>>("sipConfiguration")?.let {
-          val sipConfiguration = Gson().fromJson(JSONObject(it).toString(), SipConfiguration::class.java)
+          val username: String = it["username"] as String? ?: ""
+          val domain: String = it["domain"] as String? ?: ""
+          val password: String = it["password"] as String? ?: ""
+          val sipConfiguration =  SipConfiguration(username,domain,password)
           sipManager.initSipModule(sipConfiguration)
           result.success("Init sip module successful")
         } ?: kotlin.run {
