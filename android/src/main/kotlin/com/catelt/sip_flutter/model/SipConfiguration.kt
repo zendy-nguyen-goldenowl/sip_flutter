@@ -4,6 +4,4 @@ data class SipConfiguration(
     val username: String,
     val domain: String,
     val password: String,
-    val token: String?,
-    val projectId: String?,
 )

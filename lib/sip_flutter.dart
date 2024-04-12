@@ -1,3 +1,4 @@
+export './src/model/sip_account_event.dart';
 export './src/model/sip_configuration.dart';
 export './src/model/sip_event.dart';
 export './src/model/sip_flutter_event.dart';
