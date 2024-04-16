@@ -4,22 +4,26 @@ class SipConfiguration {
   final String username;
   final String domain;
   final String password;
+  final int? expires;
 
   const SipConfiguration({
     required this.username,
     required this.domain,
     required this.password,
+    this.expires,
   });
 
   SipConfiguration copyWith({
     String? username,
     String? domain,
     String? password,
+    int? expires,
   }) {
     return SipConfiguration(
       username: username ?? this.username,
       domain: domain ?? this.domain,
       password: password ?? this.password,
+      expires: expires ?? this.expires,
     );
   }
 
@@ -28,6 +32,7 @@ class SipConfiguration {
       'username': username,
       'domain': domain,
       'password': password,
+      'expires': expires,
     };
   }
 
@@ -36,6 +41,7 @@ class SipConfiguration {
       username: map['username'] != null ? map['username'] as String : "",
       domain: map['domain'] != null ? map['domain'] as String : "",
       password: map['password'] != null ? map['password'] as String : "",
+      expires: map['expires'],
     );
   }
 
@@ -45,8 +51,9 @@ class SipConfiguration {
       SipConfiguration.fromMap(json.decode(source) as Map<String, dynamic>);
 
   @override
-  String toString() =>
-      'SipConfiguration(username: $username, domain: $domain, password: $password)';
+  String toString() {
+    return 'SipConfiguration(username: $username, domain: $domain, password: $password, expires: $expires)';
+  }
 
   @override
   bool operator ==(covariant SipConfiguration other) {
@@ -54,9 +61,15 @@ class SipConfiguration {
 
     return other.username == username &&
         other.domain == domain &&
-        other.password == password;
+        other.password == password &&
+        other.expires == expires;
   }
 
   @override
-  int get hashCode => username.hashCode ^ domain.hashCode ^ password.hashCode;
+  int get hashCode {
+    return username.hashCode ^
+        domain.hashCode ^
+        password.hashCode ^
+        expires.hashCode;
+  }
 }

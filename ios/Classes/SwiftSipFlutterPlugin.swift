@@ -28,7 +28,7 @@ public class SwiftSipFlutterPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             if(jsonString == nil) {
                 return NSLog("Sip configuration is not valid")
             }
-            let sipConfiguration = SipConfiguaration.toObject(JSONString: jsonString!)
+            let sipConfiguration = SipConfiguration.toObject(JSONString: jsonString!)
             if(sipConfiguration == nil) {
                 return NSLog("Sip configuration is not valid")
             }

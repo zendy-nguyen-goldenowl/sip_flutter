@@ -126,10 +126,7 @@ internal class SipManager private constructor(context: Context) {
         // Make sure the core is configured to use push notification token from firebase
         mCore.isPushNotificationEnabled = true
         mCore.isKeepAliveEnabled = true
-        var config = mCore.pushNotificationConfig
 
-
-//        mCore.removeListener(coreListener)
         mCore.addListener(coreListener)
         mCore.start()
         Log.d(TAG, "INIT successful")
@@ -145,6 +142,7 @@ internal class SipManager private constructor(context: Context) {
     private fun initSipAccount(sipConfiguration :SipConfiguration) {
         val username = sipConfiguration.username
         val domain = sipConfiguration.domain
+        val expires = sipConfiguration.expires
         // To configure a SIP account, we need an Account object and an AuthInfo object
         // The first one is how to connect to the proxy server, the second one stores the credentials
 
@@ -172,6 +170,11 @@ internal class SipManager private constructor(context: Context) {
 
         // Ensure push notification is enabled for this account
         accountParams.pushNotificationAllowed = true
+
+        // Set up Session Timers
+        expires?.let {
+            accountParams.expires = it
+        }
 
         // Now that our AccountParams is configured, we can create the Account object
         val account = mCore.createAccount(accountParams)
