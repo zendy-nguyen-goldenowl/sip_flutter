@@ -138,7 +138,7 @@ class SipManager {
         SwiftSipFlutterPlugin.eventSink?(data)
     }
     
-    public func initSipModule(sipConfiguration: SipConfiguaration) {
+    public func initSipModule(sipConfiguration: SipConfiguration) {
         do {
             if(mCore.defaultAccount != nil){
                 deleteSipAccount()
@@ -149,13 +149,12 @@ class SipManager {
         }
     }
     
-    
-    
-    private func initSipAccount(sipConfiguration: SipConfiguaration) {
+    private func initSipAccount(sipConfiguration: SipConfiguration) {
         do {
-            let username = sipConfiguration.username ?? ""
-            let password = sipConfiguration.password ?? ""
-            let domain = sipConfiguration.domain ?? ""
+            let username = sipConfiguration.username
+            let password = sipConfiguration.password
+            let domain = sipConfiguration.domain
+            let expires = sipConfiguration.expires
             // To configure a SIP account, we need an Account object and an AuthInfo object
             // The first one is how to connect to the proxy server, the second one stores the credentials
             
@@ -189,6 +188,11 @@ class SipManager {
             // We use remote notifications in this tutorials, not VOIP ones
              accountParams.pushNotificationAllowed = false
              accountParams.remotePushNotificationAllowed = true
+        
+            // Set up Session Timers
+            if(expires != nil){
+                accountParams.expires = expires!
+            }
             
             // Now that our AccountParams is configured, we can create the Account object
             let account = try mCore.createAccount(params: accountParams)
@@ -224,7 +228,6 @@ class SipManager {
             
             // Finally we start the call
             let _ = mCore.inviteAddressWithParams(addr: remoteAddress, params: params)
-            // result("Call successful")
             NSLog("Call successful")
             result(true)
         } catch {
@@ -264,17 +267,11 @@ class SipManager {
                 NSLog("Current call not found")
                 return result(false)
             }
-            // if(coreCall!.state == Call.State.IncomingReceived) {
-                // try coreCall!.decline(reason: Reason.Forbidden)
-                // NSLog("Hangup successful")
-                // return result(true)
-            // }
-            
+
             // Terminating a call is quite simple
             try coreCall!.terminate()
             NSLog("Hangup successful")
             result(true)
-            // result("Hangup successful")
         } catch {
             NSLog(error.localizedDescription)
             result(FlutterError(code: "500", message: error.localizedDescription, details: nil))
@@ -295,7 +292,6 @@ class SipManager {
             try coreCall!.terminate()
             NSLog("Reject successful")
             result(true)
-            // result("Reject successful")
         } catch {
             NSLog(error.localizedDescription)
             result(FlutterError(code: "500", message: error.localizedDescription, details: nil))
@@ -313,7 +309,6 @@ class SipManager {
             let coreCall = (mCore.currentCall != nil) ? mCore.currentCall : mCore.calls[0]
             
             if(coreCall == nil) {
-                // result(FlutterError(code: "404", message: "No call to pause", details: nil))
                 NSLog("Current call not found")
                 return result(false)
             }
@@ -322,7 +317,6 @@ class SipManager {
             try coreCall!.pause()
             NSLog("Pause successful")
             result(true)
-            // result("Pause successful")
         } catch {
             NSLog(error.localizedDescription)
             result(FlutterError(code: "500", message: error.localizedDescription, details: nil))
@@ -340,7 +334,6 @@ class SipManager {
             let coreCall = (mCore.currentCall != nil) ? mCore.currentCall : mCore.calls[0]
             
             if(coreCall == nil) {
-                // result(FlutterError(code: "404", message: "No to call to resume", details: nil))
                 NSLog("Current call not found")
                 result(false)
             }
@@ -349,7 +342,6 @@ class SipManager {
             try coreCall!.resume()
             NSLog("Resume successful")
             result(true)
-            // result("Resume successful")
         } catch {
             NSLog(error.localizedDescription)
             result(FlutterError(code: "500", message: error.localizedDescription, details: nil))
@@ -366,20 +358,17 @@ class SipManager {
             let domain: String? = mCore.defaultAccount?.params?.domain
             
             if (domain == nil) {
-                // result(FlutterError(code: "404", message: "Can't create sip uri", details: nil))
                 NSLog("Can't create sip uri")
                 return result(false)
             }
             
             let address = mCore.interpretUrl(url: String("sip:\(recipient)@\(domain!)"))
             if(address == nil) {
-                // result(FlutterError(code: "404", message: "Can't create address", details: nil))
                 NSLog("Can't create address")
                 return result(false)
             }
             
             if(coreCall == nil) {
-                // result(FlutterError(code: "404", message: "No call to transfer", details: nil))
                 NSLog("Current call not found")
                 result(false)
             }
@@ -388,7 +377,6 @@ class SipManager {
             try coreCall!.transferTo(referTo: address!)
             NSLog("Transfer successful")
             result(true)
-            // result("Transfer successful")
         } catch {
             NSLog(error.localizedDescription)
             result(FlutterError(code: "500", message: error.localizedDescription, details: nil))
@@ -407,7 +395,6 @@ class SipManager {
             try coreCall!.sendDtmf(dtmf: dtmf.utf8CString[0])
             NSLog("Send DTMF successful")
             result(true)
-            // result("Send DTMF successful")
         } catch {
             NSLog(error.localizedDescription)
             result(FlutterError(code: "500", message: error.localizedDescription, details: nil))
@@ -467,7 +454,6 @@ class SipManager {
             deleteSipAccount()
             result(true)
         } else {
-            // result(FlutterError(code: "404", message: "Sip account not found", details: nil))
             NSLog("Sip account not found")
             result(false)
         }

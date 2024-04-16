@@ -4,4 +4,5 @@ data class SipConfiguration(
     val username: String,
     val domain: String,
     val password: String,
+    val expires: Int?,
 )

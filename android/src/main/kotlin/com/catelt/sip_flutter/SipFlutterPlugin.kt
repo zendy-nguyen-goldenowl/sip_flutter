@@ -41,7 +41,8 @@ class SipFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
           val username: String = it["username"] as String? ?: ""
           val domain: String = it["domain"] as String? ?: ""
           val password: String = it["password"] as String? ?: ""
-          val sipConfiguration =  SipConfiguration(username,domain,password)
+          val expires: Int? = it["expires"] as Int?
+          val sipConfiguration =  SipConfiguration(username,domain,password,expires)
           sipManager.initSipModule(sipConfiguration)
           result.success("Init sip module successful")
         } ?: kotlin.run {
