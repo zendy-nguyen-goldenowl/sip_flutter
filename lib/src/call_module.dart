@@ -42,17 +42,27 @@ class CallModule {
     final body = event['body'];
     if (eventName == 'AccountRegistrationStateChanged') {
       final status = body['registrationState'];
-      final message = body['message'];
       if (status != null) {
         final type = SipAccountEventType.fromTitle(status);
-        _eventAccountStreamController
-            .add(SipAccountEvent(type: type, message: message));
+        _eventAccountStreamController.add(SipAccountEvent(type: type));
       }
       return;
     }
     final type = SipEvent.fromTitle(eventName);
     if (type == null) return;
-    eventCallStreamController.add(SipFlutterEvent(type: type, body: body));
+    switch (type) {
+      case SipEvent.ring:
+        eventCallStreamController.add(
+          SipFlutterEvent(
+            type: type,
+            body: body,
+            callType: CallType.fromName(body['callType']),
+            caller: body['username'],
+          ),
+        );
+      default:
+        eventCallStreamController.add(SipFlutterEvent(type: type, body: body));
+    }
   }
 
   Future<bool> call(String phoneNumber) async {
