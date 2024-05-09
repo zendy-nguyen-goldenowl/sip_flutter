@@ -62,7 +62,6 @@ internal class SipManager private constructor(private var context: Context) {
         context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private lateinit var vibrator: Vibrator
     private lateinit var wifiLock: WifiManager.WifiLock
-    private lateinit var proximityWakeLock: PowerManager.WakeLock
 
     private var rtTimer: Timer? = null
     private var vbTimer: Timer? = null
@@ -196,11 +195,6 @@ internal class SipManager private constructor(private var context: Context) {
         context.registerReceiver(
             hotSpotReceiver,
             IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED")
-        )
-
-        proximityWakeLock = pm.newWakeLock(
-            PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK,
-            "com.catelt.sip_flutter:proximity_wakelog"
         )
 
         wifiLock = if (Build.VERSION.SDK_INT < 29)
@@ -358,7 +352,6 @@ internal class SipManager private constructor(private var context: Context) {
         stopRinging()
         stopMediaPlayer()
         setCallVolume()
-        proximitySensing(true)
         currentCall?.answer()
         Log.d(TAG, "Answer successful")
         result.success(true)
@@ -527,7 +520,6 @@ internal class SipManager private constructor(private var context: Context) {
                         } else if (currentCall != null) {
                             resetCallVolume()
                             abandonAudioFocus(context.applicationContext)
-                            proximitySensing(false)
                         }
                         currentCall = null
                     }
@@ -573,8 +565,6 @@ internal class SipManager private constructor(private var context: Context) {
         stopRinging()
         stopMediaPlayer()
         abandonAudioFocus(context.applicationContext)
-        if (this::proximityWakeLock.isInitialized && proximityWakeLock.isHeld)
-            proximityWakeLock.release()
         if (this::wifiLock.isInitialized)
             wifiLock.release()
     }
@@ -802,7 +792,6 @@ internal class SipManager private constructor(private var context: Context) {
                     if (currentCall == null) {
                         resetCallVolume()
                         abandonAudioFocus(context.applicationContext)
-                        proximitySensing(false)
                     }
                 }
                 mediaPlayer?.start()
@@ -839,30 +828,10 @@ internal class SipManager private constructor(private var context: Context) {
             }
     }
 
-    @SuppressLint("WakelockTimeout")
-    private fun proximitySensing(enable: Boolean) {
-        if (enable) {
-            if (!proximityWakeLock.isHeld) {
-                Log.d(TAG, "Acquiring proximity wake lock")
-                proximityWakeLock.acquire()
-            } else {
-                Log.d(TAG, "Proximity wake lock already acquired")
-            }
-        } else {
-            if (proximityWakeLock.isHeld) {
-                proximityWakeLock.release()
-                Log.d(TAG, "Released proximity wake lock")
-            } else {
-                Log.d(TAG, "Proximity wake lock is not held")
-            }
-        }
-    }
-
     /// Stop Media
     /// ---------------------------------
 
-
-    fun getSipCall(callp: Long, remoteUri: String): SipCall {
+    private fun getSipCall(callp: Long, remoteUri: String): SipCall {
         val idCalls: List<Long> = calls.map {
             it.callp
         }.toList()
