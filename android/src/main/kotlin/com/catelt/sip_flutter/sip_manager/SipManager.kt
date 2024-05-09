@@ -264,8 +264,7 @@ internal class SipManager private constructor(private var context: Context) {
         isRunning = true
     }
 
-
-    fun closed(){
+    private fun closed(){
         baresipStop(force = false)
     }
 
@@ -513,20 +512,21 @@ internal class SipManager private constructor(private var context: Context) {
             }
         }else{
             when(ev[0]){
-                "registering" -> {
+                "registering","unregistering" -> {
                     sendAccountEvent(RegisterSipState.Progress)
                     return
                 }
                 "registered" -> {
-                    sendAccountEvent(RegisterSipState.Ok)
+                    if(ua != null){
+                        sendAccountEvent(RegisterSipState.Ok)
+                    }
+                    else{
+                        sendAccountEvent(RegisterSipState.None)
+                    }
                     return
                 }
                 "registering failed" -> {
                     sendAccountEvent(RegisterSipState.Failed)
-                    return
-                }
-                "unregistering" -> {
-                    sendAccountEvent(RegisterSipState.None)
                     return
                 }
             }
@@ -559,8 +559,6 @@ internal class SipManager private constructor(private var context: Context) {
     /// Network
 
     private fun updateNetwork() {
-
-        if(ua == null) return
 
         updateDnsServers()
 
@@ -871,8 +869,6 @@ internal class SipManager private constructor(private var context: Context) {
             }
             am.mode = AudioManager.MODE_NORMAL
         }
-
-
 
         fun getInstance(context: Context): SipManager {
             return INSTANCE ?: synchronized(SipManager::class.java) {
