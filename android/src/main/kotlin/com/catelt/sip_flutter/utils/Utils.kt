@@ -26,7 +26,7 @@ object Utils {
             val os = FileOutputStream(path)
             val buffer = ByteArray(512)
             var byteRead: Int = `is`.read(buffer)
-            while (byteRead  != -1) {
+            while (byteRead != -1) {
                 os.write(buffer, 0, byteRead)
                 byteRead = `is`.read(buffer)
             }
@@ -52,8 +52,7 @@ object Utils {
     fun putFileContents(filePath: String, contents: ByteArray): Boolean {
         try {
             File(filePath).writeBytes(contents)
-        }
-        catch (e: IOException) {
+        } catch (e: IOException) {
             Log.e(TAG, "Failed to write file '$filePath': $e")
             return false
         }
@@ -79,7 +78,7 @@ object Utils {
                     }
             }
             if (speakerDevice == null) {
-                Log.w(TAG,"Could not find requested communication device")
+                Log.w(TAG, "Could not find requested communication device")
                 return
             }
             if (current != speakerDevice.type) {
@@ -193,7 +192,9 @@ object Utils {
     }
 
     fun checkIpV4(ip: String): Boolean {
-        return Regex("^(([0-1]?[0-9]{1,2}\\.)|(2[0-4][0-9]\\.)|(25[0-5]\\.)){3}(([0-1]?[0-9]{1,2})|(2[0-4][0-9])|(25[0-5]))$").matches(ip)
+        return Regex("^(([0-1]?[0-9]{1,2}\\.)|(2[0-4][0-9]\\.)|(25[0-5]\\.)){3}(([0-1]?[0-9]{1,2})|(2[0-4][0-9])|(25[0-5]))$").matches(
+            ip
+        )
     }
 }
 
