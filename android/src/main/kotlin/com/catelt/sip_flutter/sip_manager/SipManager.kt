@@ -45,18 +45,21 @@ import kotlin.math.roundToInt
 
 internal class SipManager private constructor(private var context: Context) {
 
-    private var ua : Long? = null
+    private var ua: Long? = null
     private var calls = mutableSetOf<SipCall>()
-    private var currentCall : SipCall? = null
+    private var currentCall: SipCall? = null
     private var cacheStateAccount = RegisterSipState.None
     private val handler: Handler = Handler(Looper.getMainLooper())
 
     private lateinit var rt: Ringtone
     private var pm: PowerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
     private lateinit var hotSpotReceiver: BroadcastReceiver
-    private var am: AudioManager = context.getSystemService(AppCompatActivity.AUDIO_SERVICE) as AudioManager
-    private var cm: ConnectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    private var wm: WifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+    private var am: AudioManager =
+        context.getSystemService(AppCompatActivity.AUDIO_SERVICE) as AudioManager
+    private var cm: ConnectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    private var wm: WifiManager =
+        context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
     private lateinit var vibrator: Vibrator
     private lateinit var wifiLock: WifiManager.WifiLock
     private lateinit var proximityWakeLock: PowerManager.WakeLock
@@ -72,12 +75,15 @@ internal class SipManager private constructor(private var context: Context) {
     private var mediaPlayer: MediaPlayer? = null
 
     init {
-        val rtUri = RingtoneManager.getActualDefaultRingtoneUri(context.applicationContext,
-            RingtoneManager.TYPE_RINGTONE)
+        val rtUri = RingtoneManager.getActualDefaultRingtoneUri(
+            context.applicationContext,
+            RingtoneManager.TYPE_RINGTONE
+        )
         rt = RingtoneManager.getRingtone(context.applicationContext, rtUri)
 
         vibrator = if (Build.VERSION.SDK_INT >= 31) {
-            val vibratorManager = context.applicationContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            val vibratorManager =
+                context.applicationContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
             vibratorManager.defaultVibrator
         } else {
             @Suppress("DEPRECATION")
@@ -187,12 +193,15 @@ internal class SipManager private constructor(private var context: Context) {
             }
         }
 
-        context.registerReceiver(hotSpotReceiver,
+        context.registerReceiver(
+            hotSpotReceiver,
             IntentFilter("android.net.wifi.WIFI_AP_STATE_CHANGED")
         )
 
-        proximityWakeLock = pm.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK,
-            "com.catelt.sip_flutter:proximity_wakelog")
+        proximityWakeLock = pm.newWakeLock(
+            PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK,
+            "com.catelt.sip_flutter:proximity_wakelog"
+        )
 
         wifiLock = if (Build.VERSION.SDK_INT < 29)
             @Suppress("DEPRECATION")
@@ -214,14 +223,14 @@ internal class SipManager private constructor(private var context: Context) {
 
     private fun sendAccountEvent(state: RegisterSipState) {
         cacheStateAccount = state
-        sendEvent(SipEvent.AccountRegistrationStateChanged.name,"registrationState" to state.name)
+        sendEvent(SipEvent.AccountRegistrationStateChanged.name, "registrationState" to state.name)
     }
 
-    private external fun baresipStart(path: String,addresses: String ,logLevel: Int)
+    private external fun baresipStart(path: String, addresses: String, logLevel: Int)
     private external fun baresipStop(force: Boolean)
 
 
-    private fun start(){
+    private fun start() {
         val filesPath = context.filesDir.absolutePath
 
         val assets = arrayOf("config")
@@ -243,7 +252,7 @@ internal class SipManager private constructor(private var context: Context) {
                 Log.i(TAG, "Asset '$a' already copied")
             }
             if (a == "config")
-                Config.initialize(filesPath,context)
+                Config.initialize(filesPath, context)
         }
 
         val logLevel = 2
@@ -264,29 +273,30 @@ internal class SipManager private constructor(private var context: Context) {
         isRunning = true
     }
 
-    private fun closed(){
+    private fun closed() {
         baresipStop(force = false)
     }
 
     fun initSipModule(sipConfiguration: SipConfiguration) {
-        if(ua != null){
+        if (ua != null) {
             unregister()
         }
         initSipAccount(sipConfiguration)
     }
 
-    private fun initSipAccount(sipConfiguration :SipConfiguration) {
+    private fun initSipAccount(sipConfiguration: SipConfiguration) {
         val username = sipConfiguration.username
         val domain = sipConfiguration.domain
         val password = sipConfiguration.password
         val expires = sipConfiguration.expires ?: 900
 
-        val addr = "<sip:$username@$domain>;auth_pass=$password;stunserver=\"stun:stun.l.google.com:19302\";regq=0.5;pubint=0;regint=$expires"
+        val addr =
+            "<sip:$username@$domain>;auth_pass=$password;stunserver=\"stun:stun.l.google.com:19302\";regq=0.5;pubint=0;regint=$expires"
 
         // Start user agent.
         val uap = Api.ua_alloc(addr)
-        if(uap == 0L){
-            Log.e(TAG,"ua_alloc() fail")
+        if (uap == 0L) {
+            Log.e(TAG, "ua_alloc() fail")
             return
         }
         ua = uap
@@ -295,7 +305,7 @@ internal class SipManager private constructor(private var context: Context) {
         val audioCodecs = Api.audio_codecs()
 
         if (Api.account_set_audio_codecs(accp, audioCodecs) != 0) {
-            Log.e(TAG,"account_set_audio_codecs() fail")
+            Log.e(TAG, "account_set_audio_codecs() fail")
             return
         }
 
@@ -304,16 +314,16 @@ internal class SipManager private constructor(private var context: Context) {
         registry()
     }
 
-    private fun registry(){
+    private fun registry() {
         ua?.let {
-            if(Api.ua_register(it) != 0){
-                Log.e(TAG,"ua_register() fail")
+            if (Api.ua_register(it) != 0) {
+                Log.e(TAG, "ua_register() fail")
                 return
             }
         }
     }
 
-    private fun unregister(){
+    private fun unregister() {
         ua?.let {
             Api.ua_unregister(it)
             ua = null
@@ -328,10 +338,9 @@ internal class SipManager private constructor(private var context: Context) {
                 val call = SipCall(callp, it, remoteAddress)
                 calls.add(call)
                 val response = call.connect()
-                if(response){
+                if (response) {
                     currentCall = call
-                }
-                else{
+                } else {
                     calls.remove(call)
                 }
                 result.success(response)
@@ -342,7 +351,7 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun answer(result: Result) {
-        if(currentCall == null) {
+        if (currentCall == null) {
             Log.d(TAG, "Current call not found")
             return result.success(false)
         }
@@ -356,27 +365,27 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun hangup(result: Result) {
-        if(currentCall == null) {
+        if (currentCall == null) {
             Log.d(TAG, "Current call not found")
             return result.success(false)
         }
-        currentCall?.hangup(code = 487,reason = "Request Terminated")
+        currentCall?.hangup(code = 487, reason = "Request Terminated")
         Log.d(TAG, "Hangup successful")
         result.success(true)
     }
 
     fun reject(result: Result) {
-        if(currentCall == null) {
+        if (currentCall == null) {
             Log.d(TAG, "Current call not found")
             return result.success(false)
         }
-        currentCall?.hangup(code = 500,reason = "Busy Now")
+        currentCall?.hangup(code = 500, reason = "Busy Now")
         Log.d(TAG, "Reject successful")
         result.success(true)
     }
 
     fun pause(result: Result) {
-        if(currentCall == null) {
+        if (currentCall == null) {
             Log.d(TAG, "Current call not found")
             return result.success(false)
         }
@@ -386,7 +395,7 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun resume(result: Result) {
-        if(currentCall == null)  {
+        if (currentCall == null) {
             Log.d(TAG, "Current call not found")
             return result.success(false)
         }
@@ -401,7 +410,7 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun toggleMic(result: Result) {
-        if(currentCall == null) {
+        if (currentCall == null) {
             return result.error("404", "Current call not found", null)
         }
         val isMicMuted = currentCall!!.isMicMuted()
@@ -410,13 +419,13 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun refreshSipAccount(result: Result) {
-        if(ua != null && cacheStateAccount != RegisterSipState.Ok){
+        if (ua != null && cacheStateAccount != RegisterSipState.Ok) {
             registry()
         }
     }
 
     fun unregisterSipAccount(result: Result) {
-        if(ua == null) {
+        if (ua == null) {
             Log.d(TAG, "Sip account not found")
             return result.success(false)
         }
@@ -429,7 +438,7 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun isMicEnabled(result: Result) {
-        if(currentCall == null){
+        if (currentCall == null) {
             return result.success(false)
         }
         val isMicMuted = currentCall!!.isMicMuted()
@@ -440,35 +449,46 @@ internal class SipManager private constructor(private var context: Context) {
         result.success(Utils.isSpeakerPhoneOn(am))
     }
 
-    private fun createParams(event: String, vararg params: Pair<String, Any>) : Map<String, Any> {
+    private fun createParams(event: String, vararg params: Pair<String, Any>): Map<String, Any> {
         return mapOf("event" to event, "body" to params.toMap())
     }
 
     @SuppressLint("UnspecifiedImmutableFlag", "DiscouragedApi")
     @Keep
     fun uaEvent(event: String, uap: Long, callp: Long) {
-        if(!isRunning) return
+        if (!isRunning) return
         val ev = event.split(",")
 
-        if(callp != 0L){
-            if(ua == null) return
+        if (callp != 0L) {
+            if (ua == null) return
 
-            val sipCall = getSipCall(callp,ev.last())
+            val sipCall = getSipCall(callp, ev.last())
             currentCall = sipCall
-            when(ev[0]){
+            when (ev[0]) {
                 "call incoming" -> {
                     startRinging()
-                    sendEvent(SipEvent.Ring.name,"username" to sipCall.dir, "callType" to CallType.inbound.name)
+                    sendEvent(
+                        SipEvent.Ring.name,
+                        "username" to sipCall.dir,
+                        "callType" to CallType.inbound.name
+                    )
                     return
                 }
+
                 "call outgoing" -> {
-                    sendEvent(SipEvent.Ring.name,"username" to sipCall.dir, "callType" to CallType.outbound.name)
+                    sendEvent(
+                        SipEvent.Ring.name,
+                        "username" to sipCall.dir,
+                        "callType" to CallType.outbound.name
+                    )
                     return
                 }
+
                 "call ringing" -> {
                     playRingBack()
                     return
                 }
+
                 "call progress" -> {
                     if ((ev[1].toInt() and Api.SDP_RECVONLY) != 0)
                         stopMediaPlayer()
@@ -476,25 +496,29 @@ internal class SipManager private constructor(private var context: Context) {
                         playRingBack()
                     return
                 }
+
                 "call update" -> {
-                    when(ev[1]){
+                    when (ev[1]) {
                         "1" -> {
                             sendEvent(SipEvent.Paused.name)
                         }
+
                         "3" -> {
                             sendEvent(SipEvent.Resuming.name)
                         }
                     }
                     return
                 }
+
                 "call established" -> {
                     sendEvent(SipEvent.Up.name)
                     return
                 }
+
                 "call closed" -> {
                     sendEvent(SipEvent.Hangup.name)
                     calls.remove(sipCall)
-                    if(currentCall != null){
+                    if (currentCall != null) {
                         stopRinging()
                         stopMediaPlayer()
                         val tone = ev[2]
@@ -510,21 +534,22 @@ internal class SipManager private constructor(private var context: Context) {
                     return
                 }
             }
-        }else{
-            when(ev[0]){
-                "registering","unregistering" -> {
+        } else {
+            when (ev[0]) {
+                "registering", "unregistering" -> {
                     sendAccountEvent(RegisterSipState.Progress)
                     return
                 }
+
                 "registered" -> {
-                    if(ua != null){
+                    if (ua != null) {
                         sendAccountEvent(RegisterSipState.Ok)
-                    }
-                    else{
+                    } else {
                         sendAccountEvent(RegisterSipState.None)
                     }
                     return
                 }
+
                 "registering failed" -> {
                     sendAccountEvent(RegisterSipState.Failed)
                     return
@@ -611,12 +636,14 @@ internal class SipManager private constructor(private var context: Context) {
         for (n in allNetworks) {
             val caps = cm.getNetworkCapabilities(n) ?: continue
             if (Build.VERSION.SDK_INT < 28 ||
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_FOREGROUND)) {
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_FOREGROUND)
+            ) {
                 val props = cm.getLinkProperties(n) ?: continue
                 for (la in props.linkAddresses)
                     if (la.scope == android.system.OsConstants.RT_SCOPE_UNIVERSE &&
                         props.interfaceName != null && la.address.hostAddress != null &&
-                        afMatch(la.address.hostAddress!!))
+                        afMatch(la.address.hostAddress!!)
+                    )
                         addresses[la.address.hostAddress!!] = props.interfaceName!!
             }
         }
@@ -713,7 +740,11 @@ internal class SipManager private constructor(private var context: Context) {
             } else {
                 if (am.getStreamVolume(AudioManager.STREAM_RING) != 0) {
                     @Suppress("DEPRECATION")
-                    Settings.System.getInt(context.contentResolver, Settings.System.VIBRATE_WHEN_RINGING, 0) == 1
+                    Settings.System.getInt(
+                        context.contentResolver,
+                        Settings.System.VIBRATE_WHEN_RINGING,
+                        0
+                    ) == 1
                 } else {
                     false
                 }
@@ -743,7 +774,8 @@ internal class SipManager private constructor(private var context: Context) {
             val resourceId = context.applicationContext.resources.getIdentifier(
                 name,
                 "raw",
-                context.applicationContext.packageName)
+                context.applicationContext.packageName
+            )
             if (resourceId != 0) {
                 mediaPlayer = MediaPlayer.create(context, resourceId)
                 mediaPlayer?.isLooping = true
@@ -756,12 +788,13 @@ internal class SipManager private constructor(private var context: Context) {
 
     @SuppressLint("DiscouragedApi")
     private fun playBusy() {
-        if (mediaPlayer == null ) {
+        if (mediaPlayer == null) {
             val name = "busy_$toneCountry"
             val resourceId = context.applicationContext.resources.getIdentifier(
                 name,
                 "raw",
-                context.applicationContext.packageName)
+                context.applicationContext.packageName
+            )
             if (resourceId != 0) {
                 mediaPlayer = MediaPlayer.create(context, resourceId)
                 mediaPlayer?.setOnCompletionListener {
@@ -791,8 +824,10 @@ internal class SipManager private constructor(private var context: Context) {
                 origVolume[streamType] = am.getStreamVolume(streamType)
                 val maxVolume = am.getStreamMaxVolume(streamType)
                 am.setStreamVolume(streamType, (callVolume * 0.1 * maxVolume).roundToInt(), 0)
-                Log.d(TAG, "Orig/new/max $streamType volume is " +
-                        "${origVolume[streamType]}/${am.getStreamVolume(streamType)}/$maxVolume")
+                Log.d(
+                    TAG, "Orig/new/max $streamType volume is " +
+                            "${origVolume[streamType]}/${am.getStreamVolume(streamType)}/$maxVolume"
+                )
             }
     }
 
@@ -827,16 +862,16 @@ internal class SipManager private constructor(private var context: Context) {
     /// ---------------------------------
 
 
-    fun getSipCall(callp: Long, remoteUri: String): SipCall{
-        val idCalls : List<Long> = calls.map {
+    fun getSipCall(callp: Long, remoteUri: String): SipCall {
+        val idCalls: List<Long> = calls.map {
             it.callp
         }.toList()
         val index = idCalls.indexOf(callp)
-        if(index >= 0){
+        if (index >= 0) {
             return calls.elementAt(index)
 
-        }else{
-            val sipCall = SipCall(callp,ua ?: 0,remoteUri)
+        } else {
+            val sipCall = SipCall(callp, ua ?: 0, remoteUri)
             calls.plus(sipCall)
             return sipCall
         }
@@ -861,7 +896,8 @@ internal class SipManager private constructor(private var context: Context) {
             if (audioFocusRequest != null) {
                 Log.d(TAG, "Abandoning audio focus")
                 if (AudioManagerCompat.abandonAudioFocusRequest(am, audioFocusRequest!!) ==
-                    AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                    AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+                ) {
                     audioFocusRequest = null
                 } else {
                     Log.e(TAG, "Failed to abandon audio focus")

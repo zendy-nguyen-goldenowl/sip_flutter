@@ -15,9 +15,10 @@ object Config {
     private lateinit var config: String
     private lateinit var previousConfig: String
     private lateinit var previousLines: List<String>
-    private val audioModules = listOf("opus", "amr", "g722", "g7221", "g726", "g729", "codec2", "g711")
+    private val audioModules =
+        listOf("opus", "amr", "g722", "g7221", "g726", "g729", "codec2", "g711")
 
-    fun initialize(path: String,ctx: Context) {
+    fun initialize(path: String, ctx: Context) {
         val configPath = "$path/config"
 
         config = ctx.assets.open("config.static").bufferedReader().use { it.readText() }
@@ -27,7 +28,8 @@ object Config {
             config = "${config}module webrtc_aecm.so\n"
             previousConfig = config
         } else {
-            previousConfig = String(Utils.getFileContents(configPath)!!, StandardCharsets.ISO_8859_1)
+            previousConfig =
+                String(Utils.getFileContents(configPath)!!, StandardCharsets.ISO_8859_1)
         }
         previousLines = previousConfig.split("\n")
 
