@@ -407,7 +407,7 @@ internal class SipManager private constructor(private var context: Context) {
         }
         val isMicMuted = currentCall!!.isMicMuted()
         Api.calls_mute(!isMicMuted)
-        result(!(currentCall!!.isMicMuted()))
+        result.success(!(currentCall!!.isMicMuted()))
     }
 
     fun refreshSipAccount(result: Result) {
