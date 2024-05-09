@@ -560,6 +560,8 @@ internal class SipManager private constructor(private var context: Context) {
 
     private fun updateNetwork() {
 
+        if(ua == null) return
+
         updateDnsServers()
 
         val addresses = linkAddresses()
