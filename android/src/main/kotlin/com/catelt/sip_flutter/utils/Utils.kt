@@ -59,7 +59,12 @@ object Utils {
         return true
     }
 
-    fun setSpeakerPhone(executor: Executor, am: AudioManager, enable: Boolean) {
+    private fun setSpeakerPhone(
+        executor: Executor,
+        am: AudioManager,
+        enable: Boolean,
+        result: (isSpeakerOn: Boolean) -> Unit
+    ) {
         if (Build.VERSION.SDK_INT >= 31) {
             val current = am.communicationDevice!!.type
             Log.d(TAG, "Current com dev/mode is $current/${am.mode}")
@@ -79,6 +84,7 @@ object Utils {
             }
             if (speakerDevice == null) {
                 Log.w(TAG, "Could not find requested communication device")
+                result.invoke(isSpeakerPhoneOn(am))
                 return
             }
             if (current != speakerDevice.type) {
@@ -91,12 +97,14 @@ object Utils {
                         Log.d(TAG, "Setting mode to communication")
                         am.mode = AudioManager.MODE_IN_COMMUNICATION
                     }
+                    result.invoke(false)
                 } else {
                     // Currently at API levels 31+, speakerphone needs normal mode
                     if (am.mode == AudioManager.MODE_NORMAL) {
                         Log.d(TAG, "Setting com device to ${speakerDevice.type} in MODE_NORMAL")
                         if (!am.setCommunicationDevice(speakerDevice))
                             Log.e(TAG, "Could not set com device")
+                        result.invoke(true)
                     } else {
                         val normalListener = object : AudioManager.OnModeChangedListener {
                             override fun onModeChanged(mode: Int) {
@@ -108,6 +116,7 @@ object Utils {
                                     )
                                     if (!am.setCommunicationDevice(speakerDevice))
                                         Log.e(TAG, "Could not set com device")
+                                    result.invoke(true)
                                 }
                             }
                         }
@@ -117,11 +126,14 @@ object Utils {
                     }
                 }
                 Log.d(TAG, "New com device/mode is ${am.communicationDevice!!.type}/${am.mode}")
+            } else {
+                result.invoke(isSpeakerPhoneOn(am))
             }
         } else {
             @Suppress("DEPRECATION")
             am.isSpeakerphoneOn = enable
             Log.d(TAG, "Speakerphone is $enable")
+            result.invoke(enable)
         }
     }
 
@@ -135,15 +147,19 @@ object Utils {
         }
     }
 
-    fun toggleSpeakerPhone(executor: Executor, am: AudioManager) {
+    fun toggleSpeakerPhone(
+        executor: Executor,
+        am: AudioManager,
+        result: (isSpeakerOn: Boolean) -> Unit
+    ) {
         if (Build.VERSION.SDK_INT >= 31) {
             if (am.communicationDevice!!.type == AudioDeviceInfo.TYPE_BUILTIN_EARPIECE)
-                setSpeakerPhone(executor, am, true)
+                setSpeakerPhone(executor, am, true, result)
             else if (am.communicationDevice!!.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
-                setSpeakerPhone(executor, am, false)
+                setSpeakerPhone(executor, am, false, result)
         } else {
             @Suppress("DEPRECATION")
-            setSpeakerPhone(executor, am, !am.isSpeakerphoneOn)
+            setSpeakerPhone(executor, am, !am.isSpeakerphoneOn, result)
         }
     }
 

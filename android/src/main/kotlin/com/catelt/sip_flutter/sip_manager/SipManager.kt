@@ -398,8 +398,9 @@ internal class SipManager private constructor(private var context: Context) {
     }
 
     fun toggleSpeaker(result: Result) {
-        Utils.toggleSpeakerPhone(ContextCompat.getMainExecutor(context), am)
-        result.success(Utils.isSpeakerPhoneOn(am))
+        Utils.toggleSpeakerPhone(ContextCompat.getMainExecutor(context), am) {
+            result.success(it)
+        }
     }
 
     fun toggleMic(result: Result) {
