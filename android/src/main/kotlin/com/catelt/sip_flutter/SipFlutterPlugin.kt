@@ -80,6 +80,11 @@ class SipFlutterPlugin : FlutterPlugin, MethodCallHandler, EventChannel.StreamHa
                 sipManager.resume(result)
             }
 
+            "setSpeaker" -> {
+                val enable = call.argument<Boolean>("enable") ?: true
+                sipManager.setSpeaker(enable, result)
+            }
+
             "toggleSpeaker" -> {
                 sipManager.toggleSpeaker(result)
             }

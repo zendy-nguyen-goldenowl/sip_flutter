@@ -99,6 +99,10 @@ class CallModule {
     return await _methodChannel.invokeMethod('sendDTMF', {"recipient": dtmf});
   }
 
+  Future<bool> setSpeaker(bool enable) async {
+    return await _methodChannel.invokeMethod('setSpeaker', {"enable": enable});
+  }
+
   Future<bool> toggleSpeaker() async {
     return await _methodChannel.invokeMethod('toggleSpeaker');
   }

@@ -397,6 +397,11 @@ internal class SipManager private constructor(private var context: Context) {
         result.success(true)
     }
 
+    fun setSpeaker(enable: Boolean, result: Result) {
+        Utils.setSpeakerPhone(ContextCompat.getMainExecutor(context), am, enable){}
+        result.success(true)
+    }
+
     fun toggleSpeaker(result: Result) {
         Utils.toggleSpeakerPhone(ContextCompat.getMainExecutor(context), am) {
             result.success(it)
