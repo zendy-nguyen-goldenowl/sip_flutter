@@ -52,7 +52,7 @@ public class SwiftSipFlutterPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             sipManager.resume(result: result)
             break
         case "setSpeaker":
-            let enable = (call.arguments as? [String:Any])?["enable"] as? Bool
+            let enable = (call.arguments as? [String:Any])?["enable"] as? Bool ?? true
             sipManager.setSpeaker(enable: enable, result: result)
             break
         case "toggleSpeaker":
