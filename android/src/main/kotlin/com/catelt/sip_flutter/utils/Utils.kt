@@ -59,7 +59,7 @@ object Utils {
         return true
     }
 
-    private fun setSpeakerPhone(
+    fun setSpeakerPhone(
         executor: Executor,
         am: AudioManager,
         enable: Boolean,

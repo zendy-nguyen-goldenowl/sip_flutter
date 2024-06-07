@@ -140,15 +140,16 @@ class SipManager : NSObject{
         NSLog( "Resume successful")
         result(true)
     }
+
+    func setSpeaker(enable: Bool, result: FlutterResult){
+        setupAudioSession(isSpeakerEnabled: enable)
+        result(true)
+    }
     
     func toggleSpeaker(result: FlutterResult) {
-        if(currentCall == nil){
-            return result(FlutterError(code: "404", message: "Current call not found", details: nil))
-        }
         let isSpeaker = isSpeaker()
         setupAudioSession(isSpeakerEnabled: !isSpeaker)
         result(!isSpeaker)
-
     }
     
     func toggleMic(result: FlutterResult) {
